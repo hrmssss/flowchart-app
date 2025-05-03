@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive Flowchart</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f5f5f5;
+    }
+    .card {
+      background: white;
+      padding: 2rem;
+      max-width: 500px;
+      margin: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .question {
+      font-size: 1.4rem;
+      margin-bottom: 1.5rem;
+    }
+    .options button {
+      display: block;
+      margin: 0.5rem auto;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    .options button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      font-size: 1.2rem;
+      margin-top: 2rem;
+      color: #333;
+    }
+    .reset {
+      margin-top: 1.5rem;
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div id="flow-question" class="question"></div>
+    <div id="flow-options" class="options"></div>
+    <div id="flow-result" class="result"></div>
+    <div id="reset-btn" class="reset" style="display:none;" onclick="startFlow()">Start Over</div>
+  </div>
+
+  <script>
+    const flowchart = {
+      start: {
+        question: "Do you want to drink something?",
+        options: {
+          Yes: "drink_choice",
+          No: "end_no_drink"
+        }
+      },
+      drink_choice: {
+        question: "Tea or Coffee?",
+        options: {
+          Tea: "tea_type",
+          Coffee: "coffee_type"
+        }
+      },
+      tea_type: {
+        question: "Hot or Iced Tea?",
+        options: {
+          Hot: "result_hot_tea",
+          Iced: "result_iced_tea"
+        }
+      },
+      coffee_type: {
+        question: "Black or With Milk?",
+        options: {
+          Black: "result_black_coffee",
+          "With Milk": "result_milk_coffee"
+        }
+      },
+      end_no_drink: {
+        result: "No drink selected. Goodbye!"
+      },
+      result_hot_tea: {
+        result: "You chose hot tea. Enjoy!"
+      },
+      result_iced_tea: {
+        result: "You chose iced tea. Refreshing!"
+      },
+      result_black_coffee: {
+        result: "You chose black coffee. Strong choice!"
+      },
+      result_milk_coffee: {
+        result: "You chose coffee with milk. Nice!"
+      }
+    };
+
+    function startFlow() {
+      renderNode("start");
+    }
+
+    function renderNode(nodeId) {
+      const node = flowchart[nodeId];
+      const questionDiv = document.getElementById("flow-question");
+      const optionsDiv = document.getElementById("flow-options");
+      const resultDiv = document.getElementById("flow-result");
+      const resetBtn = document.getElementById("reset-btn");
+
+      questionDiv.innerHTML = "";
+      optionsDiv.innerHTML = "";
+      resultDiv.innerHTML = "";
+      resetBtn.style.display = "none";
+
+      if (node.question) {
+        questionDiv.textContent = node.question;
+        for (const [label, nextId] of Object.entries(node.options)) {
+          const btn = document.createElement("button");
+          btn.textContent = label;
+          btn.onclick = () => renderNode(nextId);
+          optionsDiv.appendChild(btn);
+        }
+      } else if (node.result) {
+        resultDiv.textContent = node.result;
+        resetBtn.style.display = "block";
+      }
+    }
+
+    // Start app on load
+    startFlow();
+  </script>
+
+</body>
+</html>
