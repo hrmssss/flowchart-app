@@ -1,143 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Interactive Flowchart</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Flowcharts</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 2rem;
-      background-color: #f5f5f5;
+      background: linear-gradient(to bottom, #cce5ff, #ffffff);
+      padding: 1rem;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      overflow-x: hidden;
     }
-    .card {
+    h1 {
+      font-size: 2.5rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .flowchart {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 0.5rem;
+      background: none;
+      flex-wrap: nowrap;
+      position: relative;
+    }
+    .title-label {
+      font-size: 4rem;
+      font-weight: bold;
+      color: #003366;
+      margin-right: 0.5rem;
+      writing-mode: horizontal-tb;
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .step {
+      display: none;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    .step.active {
+      display: block;
+    }
+    .box {
       background: white;
-      padding: 2rem;
-      max-width: 500px;
-      margin: auto;
+      padding: 1rem;
       border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      max-width: 280px;
+      margin: 0.25rem auto;
       text-align: center;
     }
-    .question {
-      font-size: 1.4rem;
-      margin-bottom: 1.5rem;
+    .box p {
+      font-size: 1.8rem;
+      margin: 0.5rem 0;
     }
-    .options button {
-      display: block;
-      margin: 0.5rem auto;
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
+    button {
+      margin: 0.25rem;
+      padding: 0.5rem 0;
+      font-size: 1.4rem;
       border: none;
       border-radius: 8px;
-      background-color: #4CAF50;
+      background: #007bff;
       color: white;
       cursor: pointer;
+      transition: background 0.3s ease;
+      width: 120px;
     }
-    .options button:hover {
-      background-color: #45a049;
+    button:hover {
+      background: #0056b3;
     }
-    .result {
-      font-size: 1.2rem;
-      margin-top: 2rem;
-      color: #333;
-    }
-    .reset {
-      margin-top: 1.5rem;
-      color: #007bff;
-      cursor: pointer;
-      text-decoration: underline;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
+  <h1>Forex Trading Interactive Flowcharts</h1>
 
-  <div class="card">
-    <div id="flow-question" class="question"></div>
-    <div id="flow-options" class="options"></div>
-    <div id="flow-result" class="result"></div>
-    <div id="reset-btn" class="reset" style="display:none;" onclick="startFlow()">Start Over</div>
-  </div>
+  <div id="charts"></div>
 
   <script>
-    const flowchart = {
-      start: {
-        question: "Do you want to drink something?",
-        options: {
-          Yes: "drink_choice",
-          No: "end_no_drink"
-        }
-      },
-      drink_choice: {
-        question: "Tea or Coffee?",
-        options: {
-          Tea: "tea_type",
-          Coffee: "coffee_type"
-        }
-      },
-      tea_type: {
-        question: "Hot or Iced Tea?",
-        options: {
-          Hot: "result_hot_tea",
-          Iced: "result_iced_tea"
-        }
-      },
-      coffee_type: {
-        question: "Black or With Milk?",
-        options: {
-          Black: "result_black_coffee",
-          "With Milk": "result_milk_coffee"
-        }
-      },
-      end_no_drink: {
-        result: "No drink selected. Goodbye!"
-      },
-      result_hot_tea: {
-        result: "You chose hot tea. Enjoy!"
-      },
-      result_iced_tea: {
-        result: "You chose iced tea. Refreshing!"
-      },
-      result_black_coffee: {
-        result: "You chose black coffee. Strong choice!"
-      },
-      result_milk_coffee: {
-        result: "You chose coffee with milk. Nice!"
-      }
-    };
+    const markets = ['USDJPY', 'GOLD', 'EURUSD', 'USDCAD', 'GBPUSD'];
+    const flowchartHTML = (pair) => `
+      <section class="flowchart">
+        <div class="title-label">${pair}</div>
+        <div class="step active" id="${pair}-step1">
+          <div class="box">
+            <p><strong>Step 1:</strong> Pre-Market Analysis</p>
+            <button onclick="goTo('${pair}', 'step2')">yes</button>
+            <button onclick="goTo('${pair}', 'step3')">no</button>
+          </div>
+        </div>
 
-    function startFlow() {
-      renderNode("start");
+        <div class="step" id="${pair}-step2">
+          <div class="box">
+            <p><strong>Step 2:</strong> Did price hit POI in 4H?</p>
+            <button onclick="goTo('${pair}', 'step4')">yes</button>
+            <button onclick="goTo('${pair}', 'step5')">no</button>
+          </div>
+        </div>
+
+        <div class="step" id="${pair}-step3">
+          <div class="box">
+            <p><strong>Step:</strong> Mark out key levels, take note of the trend</p>
+            <button onclick="goTo('${pair}', 'step2')">Continue</button>
+          </div>
+        </div>
+
+        <div class="step" id="${pair}-step4">
+          <div class="box">
+            <p><strong>Step:</strong> 4H Sweeps Previous Highs/Lows?</p>
+            <button onclick="goTo('${pair}', 'step6')">yes</button>
+            <button onclick="goTo('${pair}', 'wait1')">no</button>
+          </div>
+        </div>
+
+        <div class="step" id="${pair}-step5">
+          <div class="box">
+            <p><strong>Step:</strong> Wait for the price to hit POI</p>
+            <button onclick="goTo('${pair}', 'step4')">Continue</button>
+          </div>
+        </div>
+
+        <div class="step" id="${pair}-step6">
+          <div class="box">
+            <p><strong>Step:</strong> 4H show BoS or IFG?</p>
+            <button onclick="goTo('${pair}', 'step7')">yes</button>
+            <button onclick="goTo('${pair}', 'wait2')">no</button>
+          </div>
+        </div>
+
+        <div class="step" id="${pair}-step7">
+          <div class="box">
+            <p><strong>Step:</strong> Entry at the Prev High/Low or Tip of FVGs, IFVGs</p>
+            <button onclick="goTo('${pair}', 'step8')">Continue</button>
+          </div>
+        </div>
+
+        <div class="step" id="${pair}-step8">
+          <div class="box">
+            <p><strong>Final Step:</strong> Target 1 Next High/Low</p>
+          </div>
+        </div>
+
+        <div class="step" id="${pair}-wait1">
+          <div class="box">
+            <p><strong>Step:</strong> Wait</p>
+            <button onclick="goTo('${pair}', 'step6')">Check Again</button>
+          </div>
+        </div>
+
+        <div class="step" id="${pair}-wait2">
+          <div class="box">
+            <p><strong>Step:</strong> Wait</p>
+            <button onclick="goTo('${pair}', 'step6')">Check Again</button>
+          </div>
+        </div>
+      </section>
+    `;
+
+    document.getElementById('charts').innerHTML = markets.map(flowchartHTML).join('');
+
+    function goTo(pair, step) {
+      const steps = ['step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'step7', 'step8', 'wait1', 'wait2'];
+      steps.forEach(s => {
+        const el = document.getElementById(`${pair}-${s}`);
+        if (el) el.classList.remove('active');
+      });
+      document.getElementById(`${pair}-${step}`).classList.add('active');
     }
-
-    function renderNode(nodeId) {
-      const node = flowchart[nodeId];
-      const questionDiv = document.getElementById("flow-question");
-      const optionsDiv = document.getElementById("flow-options");
-      const resultDiv = document.getElementById("flow-result");
-      const resetBtn = document.getElementById("reset-btn");
-
-      questionDiv.innerHTML = "";
-      optionsDiv.innerHTML = "";
-      resultDiv.innerHTML = "";
-      resetBtn.style.display = "none";
-
-      if (node.question) {
-        questionDiv.textContent = node.question;
-        for (const [label, nextId] of Object.entries(node.options)) {
-          const btn = document.createElement("button");
-          btn.textContent = label;
-          btn.onclick = () => renderNode(nextId);
-          optionsDiv.appendChild(btn);
-        }
-      } else if (node.result) {
-        resultDiv.textContent = node.result;
-        resetBtn.style.display = "block";
-      }
-    }
-
-    // Start app on load
-    startFlow();
   </script>
-
 </body>
 </html>
+
